@@ -1,0 +1,46 @@
+name: Build and Deploy UI to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          cd ui
+          npm ci
+
+      - name: Build UI
+        run: |
+          cd ui
+          npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ui/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    steps:
+      - name: Download artifact
+        uses: actions/download-pages-artifact@v1
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
